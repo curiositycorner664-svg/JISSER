@@ -58,7 +58,7 @@ function renderNav() {
     ? `<a href="/orders.html">${t('nav_my_orders')}</a>
        ${user.role === 'seller' || user.role === 'admin' ? `<a href="/seller.html">${t('nav_my_products')}</a>` : ''}
        ${user.role === 'admin' ? `<a href="/admin.html">${t('nav_admin')}</a>` : ''}
-       <span style="opacity:0.75;">${user.companyName}</span>
+       <span class="nav-company" style="opacity:0.75;">${user.companyName}</span>
        <a href="#" onclick="logout(); return false;">${t('nav_log_out')}</a>`
     : `<a href="/login.html">${t('nav_log_in')}</a>
        <a href="/register.html">${t('nav_register')}</a>`;
