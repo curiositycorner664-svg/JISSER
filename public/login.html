@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Log In — BINA</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div id="site-header-root"></div>
+
+<main>
+  <div class="ledger-card">
+    <h2 data-i18n="login_title">Account Log In</h2>
+    <p style="font-size:0.85rem; color:var(--steel); margin-bottom:1.25rem;" data-i18n="login_subtitle">For approved wholesale buyers.</p>
+    <form id="login-form">
+      <label data-i18n="email_label">Email</label>
+      <input type="email" id="email" required />
+      <label data-i18n="password_label">Password</label>
+      <input type="password" id="password" required />
+      <button type="submit" style="width:100%;" data-i18n="log_in_btn">Log In</button>
+      <p id="msg"></p>
+    </form>
+    <p><span data-i18n="no_account_yet">Don't have an account?</span> <a href="/register.html" data-i18n="register_link">Register</a></p>
+    <p style="font-size:0.78rem; color:var(--steel);" data-i18n="demo_login_note">Demo: buyer@example.com / Buyer123! (after running the seed script)</p>
+  </div>
+</main>
+
+<footer class="site-footer">BINA — Your Trusted Online Store.</footer>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/api.js"></script>
+<script>
+renderNav();
+translatePage();
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById('msg');
+  msg.textContent = '';
+  try {
+    const data = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+      }),
+    });
+    setSession(data.token, data.user);
+    window.location.href = '/index.html';
+  } catch (err) {
+    msg.className = 'error-msg';
+    msg.textContent = err.message;
+  }
+});
+</script>
+</body>
+</html>

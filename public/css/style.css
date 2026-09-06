@@ -1,0 +1,530 @@
+/* ============================================================
+   WARES CO. — Design System
+   Concept: a wholesale catalog that reads like a working
+   shipping manifest — kraft tags, stamped approvals, ledger
+   tables — built at Amazon-style density for fast browsing.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+:root {
+  --ink: #041E38;        /* header / primary dark — BINA navy */
+  --ink-2: #0B2C4C;       /* header gradient partner */
+  --paper: #F5F6F8;       /* page background — neutral light */
+  --kraft: #E9EDF1;        /* tag / card surface — cool neutral */
+  --kraft-dark: #C9D2DA;    /* tag border / shadow */
+  --stamp: #FD6B00;         /* BINA orange accent */
+  --stamp-dark: #D95900;
+  --stencil: #0B1620;        /* headline black */
+  --steel: #5B6472;           /* muted text */
+  --line: #DDE3E8;             /* hairline border */
+  --ok: #2F7D4F;                 /* in-stock / paid green */
+  --warn: #C08A1E;                 /* pending amber */
+  --info: #2D5F8A;                  /* confirmed steel-blue */
+  --ship: #5B3E96;                    /* shipped violet */
+  --danger: #B3261E;
+  --radius: 3px;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--paper);
+  color: var(--stencil);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+h1, h2, h3, .display {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+
+a { color: inherit; }
+
+/* ---------------- Header ---------------- */
+
+.site-header {
+  background: linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 100%);
+  color: #EFEDE6;
+  padding: 0;
+  border-bottom: 3px solid var(--stamp);
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.85rem 1.75rem;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.wordmark {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+.wordmark-img {
+  height: 32px;
+  width: auto;
+  display: block;
+}
+.wordmark span.sub {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 500;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: var(--kraft);
+  margin-top: 3px;
+}
+
+.search-bar {
+  flex: 1;
+  display: flex;
+  max-width: 640px;
+}
+.search-bar input {
+  flex: 1;
+  margin: 0;
+  border: none;
+  border-radius: var(--radius) 0 0 var(--radius);
+  padding: 0.6rem 0.9rem;
+  font-size: 0.9rem;
+}
+.search-bar button {
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--kraft);
+  color: var(--ink);
+  border: none;
+  padding: 0 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+nav.top-links {
+  display: flex;
+  align-items: center;
+  gap: 1.35rem;
+  font-size: 0.85rem;
+  margin-left: auto;
+}
+nav.top-links a {
+  color: #EFEDE6;
+  text-decoration: none;
+  white-space: nowrap;
+}
+nav.top-links a:hover { color: var(--kraft); }
+
+.crate-cart {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.crate-cart svg { width: 20px; height: 20px; }
+.lang-switch {
+  margin: 0;
+  padding: 0.3rem 0.5rem;
+  background: rgba(255,255,255,0.08);
+  color: #EFEDE6;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: var(--radius);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.lang-switch option { color: var(--ink); }
+.cart-badge {
+  background: var(--stamp);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  min-width: 17px;
+  height: 17px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+/* Category strip — the "manifest tabs" */
+.category-strip {
+  background: var(--kraft);
+  border-bottom: 1px solid var(--kraft-dark);
+}
+.category-strip .strip-inner {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0.5rem 1.75rem;
+  display: flex;
+  gap: 0;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+.category-strip a, .category-strip span.crumb {
+  padding: 0 0.85rem;
+  border-right: 1px solid var(--kraft-dark);
+  text-decoration: none;
+  color: var(--ink);
+}
+.category-strip a:first-child { padding-left: 0; }
+.category-strip a:hover { color: var(--stamp); }
+
+/* ---------------- Layout ---------------- */
+
+main { max-width: 1300px; margin: 0 auto; padding: 1.75rem; }
+
+/* ---------------- Hero (catalog page) ---------------- */
+
+.manifest-hero {
+  position: relative;
+  background: var(--ink);
+  color: #EFEDE6;
+  border-radius: var(--radius);
+  padding: 2.25rem 2.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  overflow: hidden;
+}
+.manifest-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 2px, transparent 2px 14px);
+  pointer-events: none;
+}
+.manifest-hero .hero-text { max-width: 560px; position: relative; }
+.manifest-hero h2 {
+  font-size: 2.1rem;
+  color: #fff;
+  margin-bottom: 0.6rem;
+}
+.manifest-hero p { color: #C9CDD8; margin-bottom: 1.25rem; font-size: 0.95rem; }
+
+.stamp-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 2px solid var(--stamp);
+  color: var(--stamp);
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.7rem;
+  border-radius: 2px;
+  transform: rotate(-3deg);
+  margin-bottom: 0.9rem;
+}
+
+.hero-stat {
+  position: relative;
+  text-align: right;
+  border-left: 1px dashed rgba(255,255,255,0.3);
+  padding-left: 2rem;
+}
+.hero-stat .num { font-family: 'Oswald', sans-serif; font-size: 2.6rem; color: var(--kraft); line-height: 1; }
+.hero-stat .label { font-size: 0.78rem; color: #C9CDD8; margin-top: 0.3rem; }
+
+/* ---------------- Product grid / tag cards ---------------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1.1rem;
+}
+
+.tag-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s ease;
+}
+.tag-card:hover { border-color: var(--stamp); }
+.tag-card::before {
+  /* punched grommet hole, like a shipping tag */
+  content: '';
+  position: absolute;
+  top: 10px; left: 10px;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1.5px solid var(--steel);
+}
+.tag-thumb {
+  width: 100%; height: 138px;
+  background: var(--kraft);
+  border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--steel); font-size: 0.78rem;
+  margin-bottom: 0.7rem;
+}
+.tag-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 2px; }
+
+.tag-card .sku {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.72rem;
+  color: var(--steel);
+  letter-spacing: 0.04em;
+}
+.tag-card h3 { font-size: 1rem; font-weight: 500; margin: 0.3rem 0 0.5rem; font-family: 'IBM Plex Sans', sans-serif; }
+.tag-card h3 a { text-decoration: none; }
+.tag-card h3 a:hover { color: var(--stamp); }
+
+.price-line { display: flex; align-items: baseline; gap: 0.3rem; margin-bottom: 0.2rem; }
+.price-line .price { font-family: 'Oswald', sans-serif; font-size: 1.35rem; color: var(--ink); }
+.price-line .unit { font-size: 0.72rem; color: var(--steel); }
+.tag-card .moq { font-size: 0.76rem; color: var(--steel); margin-bottom: 0.5rem; }
+.tag-card .moq .dot { display:inline-block; width:6px; height:6px; border-radius:50%; background: var(--ok); margin-right: 4px; }
+.seller-line { font-size: 0.74rem; color: var(--steel); margin-bottom: 0.7rem; }
+.seller-line a { color: var(--info); text-decoration: none; }
+.seller-line a:hover { text-decoration: underline; }
+.verified-dot { color: var(--ok); font-weight: 700; }
+
+/* ---------------- Buttons ---------------- */
+
+button, .btn {
+  background: var(--stamp);
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.1rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+button:hover, .btn:hover { background: var(--stamp-dark); }
+button.secondary { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+button.secondary:hover { background: var(--ink); color: #fff; }
+button.danger { background: transparent; color: var(--stamp); border: 1px solid var(--stamp); }
+button.danger:hover { background: var(--stamp); color: #fff; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ---------------- Forms ---------------- */
+
+input, select, textarea {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  margin: 0.35rem 0 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 0.92rem;
+  font-family: inherit;
+  background: #fff;
+}
+input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 1px;
+}
+form label { font-size: 0.78rem; color: var(--steel); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* Ledger card — used for login/register, styled like an intake form clipped to a board */
+.ledger-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--ink);
+  border-radius: var(--radius);
+  padding: 2rem;
+  max-width: 420px;
+  margin: 2rem auto;
+}
+.ledger-card h2 { margin-bottom: 0.3rem; }
+
+.error-msg { color: var(--stamp); font-size: 0.88rem; margin: 0.5rem 0; }
+.success-msg { color: var(--ok); font-size: 0.88rem; margin: 0.5rem 0; }
+
+/* ---------------- Tables / order history ---------------- */
+
+table { width: 100%; border-collapse: collapse; background: #fff; }
+th, td { text-align: left; padding: 0.7rem 0.85rem; border-bottom: 1px solid var(--line); font-size: 0.88rem; }
+th {
+  background: var(--ink);
+  color: #EFEDE6;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Ink-stamp status badges */
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1.5px solid currentColor;
+  transform: rotate(-2deg);
+}
+.badge.pending { color: var(--warn); }
+.badge.confirmed { color: var(--info); }
+.badge.shipped { color: var(--ship); }
+.badge.paid { color: var(--ok); }
+.badge.cancelled { color: var(--danger); }
+
+/* ---------------- Bulk pricing ladder ---------------- */
+
+.tier-ladder { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin: 0.9rem 0 1.1rem; }
+.tier-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.5rem 0.8rem; font-size: 0.85rem; border-bottom: 1px dashed var(--line);
+  background: #fff;
+}
+.tier-row:last-child { border-bottom: none; }
+.tier-row .qty { color: var(--steel); }
+.tier-row .unit-price { font-family: 'Oswald', sans-serif; color: var(--ink); }
+.tier-row .save {
+  font-size: 0.72rem; color: var(--ok); background: #E6F2EA; padding: 1px 6px; border-radius: 999px;
+}
+.tier-row.best { background: var(--kraft); }
+
+/* ---------------- Buy box (product page) ---------------- */
+
+.product-layout { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 2rem; align-items: start; }
+@media (max-width: 800px) { .product-layout { grid-template-columns: 1fr; } }
+
+.product-photo {
+  background: var(--kraft);
+  border-radius: var(--radius);
+  height: 380px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--steel);
+}
+.product-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius); }
+
+.buy-box {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  background: #fff;
+  position: sticky; top: 1rem;
+}
+.buy-box .stock-line { font-size: 0.85rem; margin-bottom: 0.9rem; }
+.stock-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; }
+.stock-dot.in { background: var(--ok); }
+.stock-dot.low { background: var(--warn); }
+
+/* ---------------- Packing-slip cart / checkout ---------------- */
+
+.packing-slip {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.slip-head {
+  background: repeating-linear-gradient(45deg, var(--ink) 0 10px, var(--ink-2) 10px 20px);
+  color: #fff;
+  padding: 0.6rem 1rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.cart-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px dashed var(--line);
+}
+.cart-row:last-child { border-bottom: none; }
+.qty-input { width: 64px; margin: 0; }
+
+.credit-box {
+  background: var(--kraft);
+  border: 1px solid var(--kraft-dark);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+/* Seller stamp block on the product page — reads like a shipper's ID stamp */
+.seller-block {
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+}
+.seller-block .seller-name { font-weight: 600; color: var(--ink); }
+.seller-block .seller-name a { text-decoration: none; color: var(--ink); }
+.seller-block .seller-meta { color: var(--steel); font-size: 0.78rem; margin-top: 0.15rem; }
+.seller-block .verified-tag {
+  display: inline-flex; align-items: center; gap: 3px;
+  color: var(--ok); font-size: 0.72rem; font-weight: 700;
+  border: 1px solid var(--ok); border-radius: 999px; padding: 1px 7px; margin-left: 0.4rem;
+}
+
+.hidden { display: none !important; }
+
+/* ---------------- RTL (Arabic) overrides ----------------
+   Flex/grid ordering mirrors automatically once <html dir="rtl">
+   is set; these rules fix the handful of physical left/right
+   properties that don't flip on their own. */
+
+[dir="rtl"] nav.top-links { margin-left: 0; margin-right: auto; }
+
+[dir="rtl"] .category-strip a,
+[dir="rtl"] .category-strip span.crumb {
+  border-right: none;
+  border-left: 1px solid var(--kraft-dark);
+}
+[dir="rtl"] .category-strip a:first-child { padding-left: 0.85rem; padding-right: 0; }
+
+[dir="rtl"] .hero-stat {
+  text-align: left;
+  border-left: none;
+  border-right: 1px dashed rgba(255,255,255,0.3);
+  padding-left: 0;
+  padding-right: 2rem;
+}
+
+[dir="rtl"] th, [dir="rtl"] td { text-align: right; }
+
+[dir="rtl"] .tag-card .moq .dot { margin-right: 0; margin-left: 4px; }
+[dir="rtl"] .stock-dot { margin-right: 0; margin-left: 5px; }
+[dir="rtl"] .seller-block .verified-tag { margin-left: 0; margin-right: 0.4rem; }
+
+[dir="rtl"] .badge { transform: rotate(2deg); }
+[dir="rtl"] .stamp-badge { transform: rotate(3deg); }
+
+[dir="rtl"] body { font-family: 'IBM Plex Sans', 'Tahoma', -apple-system, sans-serif; }
+
+footer.site-footer {
+  margin-top: 3rem;
+  background: var(--ink);
+  color: #9AA3B5;
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.8rem;
+}

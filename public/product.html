@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Product Detail — BINA</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div id="site-header-root"></div>
+
+<main id="product-detail" data-i18n="loading">Loading...</main>
+
+<footer class="site-footer">BINA — Your Trusted Online Store.</footer>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/cart.js"></script>
+<script>
+renderNav();
+translatePage();
+
+const params = new URLSearchParams(window.location.search);
+const productId = params.get('id');
+
+async function loadProduct() {
+  try {
+    const p = await apiFetch('/products/' + productId);
+    const base = Number(p.base_price);
+
+    const tiersHtml = p.pricingTiers.length
+      ? `<div class="tier-ladder">` +
+        p.pricingTiers
+          .map((tier, i) => {
+            const price = Number(tier.unit_price);
+            const savePct = Math.round((1 - price / base) * 100);
+            const isBest = i === p.pricingTiers.length - 1;
+            return `<div class="tier-row ${isBest ? 'best' : ''}">
+              <span class="qty">${t('product_tier_units', { n: tier.min_quantity })}</span>
+              <span class="unit-price">${t('product_tier_unit_price', { price: price.toFixed(2) })}</span>
+              ${savePct > 0 ? `<span class="save">${t('product_save_pct', { pct: savePct })}</span>` : ''}
+            </div>`;
+          })
+          .join('') +
+        `</div>`
+      : '';
+
+    const stockClass = p.stock_quantity > p.moq * 3 ? 'in' : 'low';
+    const stockLabel = p.stock_quantity > 0 ? t('product_units_in_stock', { n: p.stock_quantity }) : t('product_out_of_stock');
+
+    const sellerHtml = p.seller_name
+      ? `<div class="seller-block">
+          <div class="seller-name">
+            <a href="/index.html?seller=${encodeURIComponent(p.seller_name)}">${p.seller_name}</a>
+            ${p.seller_verified ? `<span class="verified-tag">&#10003; ${t('verified_seller')}</span>` : ''}
+          </div>
+          <div class="seller-meta">
+            ${p.seller_rating ? `${Number(p.seller_rating).toFixed(1)}&#9733; ${t('product_reviews', { n: p.seller_review_count || 0 })}` : ''}
+            ${p.seller_location ? ` &middot; ${p.seller_location}` : ''}
+            ${p.seller_since_year ? ` &middot; ${t('product_since', { year: p.seller_since_year })}` : ''}
+          </div>
+        </div>`
+      : '';
+
+    document.getElementById('product-detail').innerHTML = `
+      <div class="category-strip" style="margin: 0 0 1.25rem; background:transparent; border:none;">
+        <div class="strip-inner" style="padding:0;">
+          <a href="/index.html">${t('product_all_products_crumb')}</a><span class="crumb">${tCategory(p.category) || ''}</span>
+        </div>
+      </div>
+      <div class="product-layout">
+        <div>
+          <div class="product-photo">${p.image_url ? `<img src="${p.image_url}">` : t('product_no_image')}</div>
+          <h2 style="margin-top:1.25rem;">${p.name}</h2>
+          <div class="sku" style="margin:0.3rem 0 1rem;">SKU ${p.sku} &middot; ${p.category ? tCategory(p.category) : t('product_uncategorized')}</div>
+          <p>${p.description || t('product_no_description')}</p>
+        </div>
+
+        <div class="buy-box">
+          <div class="price-line"><span class="price">$${base.toFixed(2)}</span><span class="unit">${t('product_base_price')}</span></div>
+          <div class="stock-line"><span class="stock-dot ${stockClass}"></span>${stockLabel}</div>
+
+          ${sellerHtml}
+          ${tiersHtml}
+
+          <label for="qty">${t('product_qty_label', { moq: p.moq })}</label>
+          <input type="number" id="qty" min="${p.moq}" value="${p.moq}" />
+          <button onclick="handleAddToCart(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${base}, ${p.moq})" style="width:100%;">${t('product_add_to_cart')}</button>
+          <p id="add-msg" class="success-msg hidden">${t('product_added')}</p>
+          <p style="font-size:0.78rem; color:var(--steel); margin-top:0.9rem;">${t('product_bulk_note')}</p>
+          ${getUser()?.role === 'admin' ? `
+          <button id="delete-product-btn" class="danger" style="width:100%; margin-top:1.25rem;">${t('admin_delete_product')}</button>
+          <p id="delete-msg"></p>` : ''}
+        </div>
+      </div>
+    `;
+
+    const deleteBtn = document.getElementById('delete-product-btn');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', async () => {
+        if (!confirm(t('admin_delete_confirm'))) return;
+        const msg = document.getElementById('delete-msg');
+        try {
+          await apiFetch('/products/' + productId, { method: 'DELETE' });
+          msg.className = 'success-msg';
+          msg.textContent = t('admin_delete_success');
+          setTimeout(() => (window.location.href = '/index.html'), 1200);
+        } catch (err) {
+          msg.className = 'error-msg';
+          msg.textContent = err.message;
+        }
+      });
+    }
+  } catch (err) {
+    document.getElementById('product-detail').innerHTML = `<p class="error-msg">${err.message}</p>`;
+  }
+}
+
+function handleAddToCart(id, name, basePrice, moq) {
+  const qty = Math.max(moq, Number(document.getElementById('qty').value) || moq);
+  addToCart(id, name, qty, basePrice, moq);
+  const msg = document.getElementById('add-msg');
+  msg.classList.remove('hidden');
+  setTimeout(() => msg.classList.add('hidden'), 2000);
+}
+
+loadProduct();
+</script>
+</body>
+</html>

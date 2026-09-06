@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>BINA — Wholesale Catalog</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div id="site-header-root"></div>
+
+<main>
+  <section class="manifest-hero">
+    <div class="hero-text">
+      <div class="stamp-badge" data-i18n="home_hero_badge">Bulk Deal</div>
+      <h2 data-i18n="home_hero_title">Cotton tees, 1000+ units, $3.40 each.</h2>
+      <p data-i18n="home_hero_body">Every SKU in this catalog ships with a quantity break — the more crates you take, the less you pay per unit. Browse the full manifest below.</p>
+      <a href="/product.html?id=1" class="btn" data-i18n="home_hero_cta">View bulk pricing</a>
+    </div>
+    <div class="hero-stat">
+      <div class="num">24%</div>
+      <div class="label" data-i18n="home_hero_stat_label">off unit price<br/>at the top tier</div>
+    </div>
+  </section>
+
+  <div style="display:flex; gap:1rem; margin-bottom:1.5rem; align-items:center; flex-wrap:wrap;">
+    <input type="text" id="search-input" data-i18n-placeholder="search_placeholder" placeholder="Search products..." style="margin:0; max-width:320px;" />
+    <select id="category-filter" style="margin:0; max-width:200px;">
+      <option value="" data-i18n="all_categories">All categories</option>
+    </select>
+    <select id="seller-filter" style="margin:0; max-width:220px;">
+      <option value="" data-i18n="all_sellers">All sellers</option>
+    </select>
+    <span id="result-count" style="color:var(--steel); font-size:0.85rem;"></span>
+  </div>
+  <div class="grid" id="product-grid" data-i18n="loading_products">Loading products...</div>
+</main>
+
+<footer class="site-footer">BINA — Your Trusted Online Store.</footer>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/cart.js"></script>
+<script>
+renderNav();
+translatePage();
+
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('search')) document.getElementById('search-input').value = urlParams.get('search');
+
+async function loadProducts() {
+  const search = document.getElementById('search-input').value;
+  const category = document.getElementById('category-filter').value || urlParams.get('category') || '';
+  const seller = document.getElementById('seller-filter').value;
+  const params = new URLSearchParams();
+  if (search) params.set('search', search);
+  if (category) params.set('category', category);
+  if (seller) params.set('seller', seller);
+
+  try {
+    const products = await apiFetch('/products?' + params.toString());
+    const grid = document.getElementById('product-grid');
+    document.getElementById('result-count').textContent = tn('result_count', products.length);
+
+    if (products.length === 0) {
+      grid.innerHTML = `<p>${t('no_products_found')}</p>`;
+      return;
+    }
+    grid.innerHTML = products
+      .map(
+        (p) => `
+      <div class="tag-card">
+        <div class="tag-thumb">${p.image_url ? `<img src="${p.image_url}">` : t('no_image')}</div>
+        <div class="sku">${p.sku}</div>
+        <h3><a href="/product.html?id=${p.id}">${p.name}</a></h3>
+        <div class="price-line"><span class="price">$${Number(p.base_price).toFixed(2)}</span><span class="unit">${t('per_unit_at_moq')}</span></div>
+        <div class="moq"><span class="dot"></span>${t('moq_in_stock', { moq: p.moq, stock: p.stock_quantity })}</div>
+        ${p.seller_name ? `<div class="seller-line">${t('sold_by')} <a href="/index.html?seller=${encodeURIComponent(p.seller_name)}">${p.seller_name}</a>${p.seller_verified ? ` <span class="verified-dot" title="${t('verified_seller')}">&#10003;</span>` : ''}${p.seller_rating ? ` &middot; ${Number(p.seller_rating).toFixed(1)}&#9733;` : ''}</div>` : ''}
+        <a href="/product.html?id=${p.id}" class="btn" style="margin-top:auto;">${t('view_and_order')}</a>
+      </div>`
+      )
+      .join('');
+
+    const catSelect = document.getElementById('category-filter');
+    const sellerSelect = document.getElementById('seller-filter');
+    if (!catSelect.dataset.built) {
+      const allRes = await apiFetch('/products');
+      const categories = [...new Set(allRes.map((p) => p.category).filter(Boolean))];
+      catSelect.innerHTML =
+        `<option value="">${t('all_categories')}</option>` +
+        categories.map((c) => `<option value="${c}" ${c === category ? 'selected' : ''}>${tCategory(c)}</option>`).join('');
+      catSelect.dataset.built = '1';
+
+      const sellerNames = [...new Set(allRes.map((p) => p.seller_name).filter(Boolean))].sort();
+      const currentSeller = seller || urlParams.get('seller') || '';
+      sellerSelect.innerHTML =
+        `<option value="">${t('all_sellers')}</option>` +
+        sellerNames.map((s) => `<option value="${s}" ${s === currentSeller ? 'selected' : ''}>${s}</option>`).join('');
+      sellerSelect.dataset.built = '1';
+      if (currentSeller) { sellerSelect.value = currentSeller; loadProducts(); }
+    }
+  } catch (err) {
+    document.getElementById('product-grid').innerHTML = `<p class="error-msg">${err.message}</p>`;
+  }
+}
+
+document.getElementById('search-input').addEventListener('input', debounce(loadProducts, 300));
+document.getElementById('category-filter').addEventListener('change', loadProducts);
+document.getElementById('seller-filter').addEventListener('change', loadProducts);
+
+function debounce(fn, ms) {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), ms);
+  };
+}
+
+loadProducts();
+</script>
+</body>
+</html>

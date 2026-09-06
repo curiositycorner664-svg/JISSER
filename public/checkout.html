@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Checkout — BINA</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div id="site-header-root"></div>
+
+<main>
+  <h2 style="margin-bottom:1.25rem;" data-i18n="checkout_title">Checkout</h2>
+  <div id="account-warning" class="hidden">
+    <p class="error-msg"><span data-i18n="must_log_in">You must be logged in to check out.</span> <a href="/login.html" data-i18n="log_in_link">Log in</a></p>
+  </div>
+  <div id="checkout-content" style="max-width:620px;">
+    <div class="credit-box" id="credit-box"></div>
+    <div class="packing-slip" id="order-summary"></div>
+    <label for="notes" style="display:block; margin-top:1.25rem;" data-i18n="order_notes">Order notes (optional)</label>
+    <textarea id="notes" rows="3"></textarea>
+    <button id="place-order-btn" style="width:100%;" data-i18n="place_order">Place Order</button>
+    <p id="msg"></p>
+  </div>
+</main>
+
+<footer class="site-footer">BINA — Your Trusted Online Store.</footer>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/cart.js"></script>
+<script>
+renderNav();
+translatePage();
+const user = getUser();
+
+if (!user) {
+  document.getElementById('account-warning').classList.remove('hidden');
+  document.getElementById('checkout-content').classList.add('hidden');
+} else {
+  init();
+}
+
+async function init() {
+  try {
+    const me = await apiFetch('/users/me');
+    const available = Number(me.credit_limit) - Number(me.credit_used);
+    document.getElementById('credit-box').innerHTML = `
+      <strong>${me.company_name}</strong> — ${t('payment_terms_label')}: ${t('terms_' + me.payment_terms)}<br/>
+      ${me.payment_terms !== 'prepaid'
+        ? t('credit_summary', { limit: Number(me.credit_limit).toFixed(2), used: Number(me.credit_used).toFixed(2), available: available.toFixed(2) })
+        : t('prepaid_note')}
+    `;
+  } catch (err) {
+    document.getElementById('credit-box').innerHTML = `<span class="error-msg">${err.message}</span>`;
+  }
+
+  const cart = getCart();
+  const summary = document.getElementById('order-summary');
+  if (cart.length === 0) {
+    summary.innerHTML = `<div class="slip-head">${t('packing_slip')}</div><div style="padding:1.5rem;">${t('crate_empty')}</div>`;
+    document.getElementById('place-order-btn').disabled = true;
+    return;
+  }
+
+  let total = 0;
+  const rows = cart
+    .map((i) => {
+      const lineTotal = i.unitPrice * i.quantity;
+      total += lineTotal;
+      return `<div class="cart-row" style="grid-template-columns:1fr auto;"><span>${i.name} &times; ${i.quantity}</span><span>$${lineTotal.toFixed(2)}</span></div>`;
+    })
+    .join('');
+
+  summary.innerHTML = `
+    <div class="slip-head">${tn('packing_slip_count', cart.length)}</div>
+    ${rows}
+    <div style="display:flex; justify-content:space-between; padding:1rem 1.1rem;">
+      <span style="font-size:0.8rem; color:var(--steel);">${t('server_recalc_note')}</span>
+      <strong style="font-family:'Oswald',sans-serif; font-size:1.2rem;">${t('est_total', { amount: total.toFixed(2) })}</strong>
+    </div>
+  `;
+}
+
+document.getElementById('place-order-btn').addEventListener('click', async () => {
+  const msg = document.getElementById('msg');
+  msg.textContent = '';
+  const cart = getCart();
+  try {
+    const result = await apiFetch('/orders', {
+      method: 'POST',
+      body: JSON.stringify({
+        items: cart.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+        notes: document.getElementById('notes').value,
+      }),
+    });
+    saveCart([]);
+    msg.className = 'success-msg';
+    msg.textContent = t('order_placed', { id: result.order.id, total: result.order.total });
+    setTimeout(() => (window.location.href = '/orders.html'), 1500);
+  } catch (err) {
+    msg.className = 'error-msg';
+    msg.textContent = err.message;
+  }
+});
+</script>
+</body>
+</html>

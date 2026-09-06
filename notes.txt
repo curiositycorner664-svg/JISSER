@@ -1,0 +1,1 @@
+passwords for postgresql superuser is :bettam

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Register — BINA</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div id="site-header-root"></div>
+
+<main>
+  <div class="ledger-card">
+    <h2 data-i18n="register_title">Open a B2B Account</h2>
+    <p style="font-size:0.85rem; color:var(--steel); margin-bottom:1.25rem;" data-i18n="register_subtitle">New accounts are reviewed before ordering — we'll set your credit terms on approval.</p>
+    <form id="register-form">
+      <label data-i18n="company_name_label">Company Name</label>
+      <input type="text" id="companyName" required />
+      <label data-i18n="contact_name_label">Contact Name</label>
+      <input type="text" id="contactName" required />
+      <label data-i18n="email_label">Email</label>
+      <input type="email" id="email" required />
+      <label data-i18n="password_hint_label">Password (min 8 characters)</label>
+      <input type="password" id="password" minlength="8" required />
+      <button type="submit" style="width:100%;" data-i18n="register_btn">Register</button>
+      <p id="msg"></p>
+    </form>
+    <p><span data-i18n="already_have_account">Already have an account?</span> <a href="/login.html" data-i18n="log_in_link">Log in</a></p>
+  </div>
+</main>
+
+<footer class="site-footer">BINA — Your Trusted Online Store.</footer>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/api.js"></script>
+<script>
+renderNav();
+translatePage();
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById('msg');
+  msg.textContent = '';
+  try {
+    const data = await apiFetch('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        companyName: document.getElementById('companyName').value,
+        contactName: document.getElementById('contactName').value,
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+      }),
+    });
+    msg.className = 'success-msg';
+    msg.textContent = data.message;
+    e.target.reset();
+  } catch (err) {
+    msg.className = 'error-msg';
+    msg.textContent = err.message;
+  }
+});
+</script>
+</body>
+</html>

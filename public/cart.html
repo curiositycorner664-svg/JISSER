@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Cart — BINA</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div id="site-header-root"></div>
+
+<main>
+  <h2 style="margin-bottom:1.25rem;" data-i18n="cart_title">Your Crate</h2>
+  <div class="packing-slip" id="cart-container" data-i18n="loading">Loading...</div>
+</main>
+
+<footer class="site-footer">BINA — Your Trusted Online Store.</footer>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/cart.js"></script>
+<script>
+renderNav();
+translatePage();
+renderCartPage();
+</script>
+</body>
+</html>
