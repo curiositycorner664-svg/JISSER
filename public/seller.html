@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>My Products — JISSER</title>
+<link rel="stylesheet" href="/css/style.css" />
+<style>
+  .product-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
+  .product-row-form { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+  .product-actions { display: flex; gap: 0.4rem; }
+  .product-actions button { padding: 0.4rem 0.7rem; font-size: 0.8rem; }
+  td.name-cell { font-weight: 600; }
+  td.muted-cell { color: var(--steel); font-size: 0.82rem; }
+  .badge.active { color: var(--ok); }
+  .badge.inactive { color: var(--danger); }
+
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(4,30,56,0.55); display: none; align-items: flex-start; justify-content: center; padding: 3rem 1rem; overflow-y: auto; z-index: 50; }
+  .modal-backdrop.open { display: flex; }
+  .modal-card { background: #fff; border-radius: var(--radius); padding: 1.75rem; max-width: 560px; width: 100%; }
+  .modal-card h3 { margin-bottom: 1rem; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .modal-actions { display: flex; gap: 0.6rem; margin-top: 1rem; }
+
+  .tier-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem; }
+  .tier-row input { margin: 0; }
+  .tier-list-block { border-top: 1px solid var(--line); margin-top: 1rem; padding-top: 1rem; }
+</style>
+</head>
+<body>
+<div id="site-header-root"></div>
+
+<main>
+  <div class="product-toolbar">
+    <div>
+      <h2 style="margin-bottom:0.3rem;" data-i18n="my_products_title">My Products</h2>
+      <p style="font-size:0.85rem; color:var(--steel);" data-i18n="my_products_subtitle">Add, edit, and manage the products your storefront sells.</p>
+    </div>
+    <button type="button" id="open-add-btn" data-i18n="add_product_btn">Add product</button>
+  </div>
+  <div id="product-container">Loading...</div>
+</main>
+
+<footer class="site-footer">JISSER — Your Trusted Online Store.</footer>
+
+<!-- Add/edit product modal -->
+<div class="modal-backdrop" id="product-modal">
+  <div class="modal-card">
+    <h3 id="modal-title" data-i18n="add_product_title">Add a product</h3>
+    <form id="product-form">
+      <input type="hidden" id="product-id" />
+      <div class="form-grid">
+        <div>
+          <label data-i18n="sku_label">SKU</label>
+          <input type="text" id="sku" required />
+        </div>
+        <div>
+          <label data-i18n="category_label">Category</label>
+          <input type="text" id="category" placeholder="Apparel, Housewares..." />
+        </div>
+        <div class="full">
+          <label data-i18n="product_name_label">Product Name</label>
+          <input type="text" id="name" required />
+        </div>
+        <div class="full">
+          <label data-i18n="description_label">Description</label>
+          <input type="text" id="description" />
+        </div>
+        <div>
+          <label data-i18n="base_price_label">Base Price ($)</label>
+          <input type="number" id="base_price" min="0" step="0.01" required />
+        </div>
+        <div>
+          <label data-i18n="moq_label_field">MOQ (min order qty)</label>
+          <input type="number" id="moq" min="1" step="1" value="1" />
+        </div>
+        <div>
+          <label data-i18n="stock_qty_label">Stock Quantity</label>
+          <input type="number" id="stock_quantity" min="0" step="1" value="0" />
+        </div>
+        <div>
+          <label data-i18n="image_url_label">Image URL</label>
+          <input type="text" id="image_url" placeholder="https://..." />
+        </div>
+      </div>
+
+      <div class="tier-list-block" id="tier-block" style="display:none;">
+        <label data-i18n="pricing_tiers_label">Bulk pricing tiers</label>
+        <div id="tier-rows"></div>
+        <div class="tier-row">
+          <input type="number" id="new-tier-qty" placeholder="Min qty" min="1" style="max-width:120px;" data-i18n-placeholder="tier_min_qty_placeholder" />
+          <input type="number" id="new-tier-price" placeholder="Unit price" min="0" step="0.01" style="max-width:130px;" data-i18n-placeholder="tier_unit_price_placeholder" />
+          <button type="button" id="add-tier-btn" data-i18n="add_tier_btn">Add tier</button>
+        </div>
+      </div>
+
+      <p id="form-msg" class="error-msg" style="display:none;"></p>
+      <div class="modal-actions">
+        <button type="submit" data-i18n="save_btn">Save</button>
+        <button type="button" class="danger" id="cancel-btn" data-i18n="cancel_btn">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/api.js"></script>
+<script>
+renderNav();
+translatePage();
+
+const container = document.getElementById('product-container');
+const user = getUser();
+const modal = document.getElementById('product-modal');
+const form = document.getElementById('product-form');
+const formMsg = document.getElementById('form-msg');
+let currentTiers = [];
+let currentProducts = [];
+
+function statusBadge(active) {
+  const key = active ? 'active' : 'inactive';
+  return `<span class="badge ${key}">${key}</span>`;
+}
+
+function rowHtml(p) {
+  return `
+    <tr data-id="${p.id}">
+      <td class="name-cell">${p.name}<br/><span class="muted-cell">${p.sku}</span></td>
+      <td>${p.category || ''}</td>
+      <td>$${Number(p.base_price).toFixed(2)}</td>
+      <td>${p.moq}</td>
+      <td>${p.stock_quantity}</td>
+      <td>${statusBadge(p.active)}</td>
+      <td>
+        <div class="product-actions">
+          <button type="button" class="edit-btn" data-i18n="edit_btn">Edit</button>
+          <button type="button" class="danger toggle-btn">${p.active ? t('deactivate_btn') : t('reactivate_btn')}</button>
+        </div>
+      </td>
+    </tr>`;
+}
+
+async function loadProducts() {
+  if (!user) {
+    container.innerHTML = `<p class="error-msg">${t('please_log_in_seller')}</p>`;
+    return;
+  }
+  if (user.role !== 'seller' && user.role !== 'admin') {
+    container.innerHTML = `<p class="error-msg">${t('please_log_in_seller')}</p>`;
+    return;
+  }
+  try {
+    currentProducts = await apiFetch('/products/mine');
+    if (currentProducts.length === 0) {
+      container.innerHTML = `<p>${t('no_products_yet')}</p>`;
+      return;
+    }
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="product_name_label">Product Name</th>
+            <th data-i18n="category_label">Category</th>
+            <th data-i18n="base_price_label">Base Price ($)</th>
+            <th data-i18n="moq_label_field">MOQ</th>
+            <th data-i18n="stock_qty_label">Stock</th>
+            <th></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${currentProducts.map(rowHtml).join('')}
+        </tbody>
+      </table>
+    `;
+    attachHandlers();
+  } catch (err) {
+    container.innerHTML = `<p class="error-msg">${err.message}</p>`;
+  }
+}
+
+function attachHandlers() {
+  container.querySelectorAll('tr[data-id]').forEach((row) => {
+    const id = Number(row.getAttribute('data-id'));
+    const product = currentProducts.find((p) => p.id === id);
+
+    row.querySelector('.edit-btn').addEventListener('click', () => openModal(product));
+
+    row.querySelector('.toggle-btn').addEventListener('click', async () => {
+      try {
+        if (product.active) {
+          await apiFetch(`/products/${id}`, { method: 'DELETE' });
+        } else {
+          await apiFetch(`/products/${id}`, { method: 'PATCH', body: JSON.stringify({ active: true }) });
+        }
+        loadProducts();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  });
+}
+
+function renderTierRows() {
+  const tierRows = document.getElementById('tier-rows');
+  if (currentTiers.length === 0) {
+    tierRows.innerHTML = `<p class="muted-cell" style="font-size:0.8rem;">No tiers yet — base price applies at MOQ.</p>`;
+    return;
+  }
+  tierRows.innerHTML = currentTiers
+    .map(
+      (tier, i) => `
+      <div class="tier-row">
+        <span style="min-width:90px;">${tier.min_quantity}+ units</span>
+        <span style="min-width:90px;">$${Number(tier.unit_price).toFixed(2)}</span>
+        <button type="button" class="danger remove-tier-btn" data-i="${i}" data-i18n="remove_tier_btn">Remove</button>
+      </div>`
+    )
+    .join('');
+  tierRows.querySelectorAll('.remove-tier-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const tier = currentTiers[Number(btn.dataset.i)];
+      const productId = document.getElementById('product-id').value;
+      if (tier.id && productId) {
+        try {
+          await apiFetch(`/products/${productId}/pricing-tiers/${tier.id}`, { method: 'DELETE' });
+        } catch (err) {
+          alert(err.message);
+          return;
+        }
+      }
+      currentTiers.splice(Number(btn.dataset.i), 1);
+      renderTierRows();
+    });
+  });
+}
+
+document.getElementById('add-tier-btn').addEventListener('click', async () => {
+  const qty = Number(document.getElementById('new-tier-qty').value);
+  const price = Number(document.getElementById('new-tier-price').value);
+  if (!qty || !price) return;
+  const productId = document.getElementById('product-id').value;
+  if (productId) {
+    try {
+      const tier = await apiFetch(`/products/${productId}/pricing-tiers`, {
+        method: 'POST',
+        body: JSON.stringify({ min_quantity: qty, unit_price: price }),
+      });
+      currentTiers.push(tier);
+    } catch (err) {
+      alert(err.message);
+      return;
+    }
+  } else {
+    // New (unsaved) product: tiers get added right after creation instead.
+    currentTiers.push({ min_quantity: qty, unit_price: price, _pending: true });
+  }
+  document.getElementById('new-tier-qty').value = '';
+  document.getElementById('new-tier-price').value = '';
+  renderTierRows();
+});
+
+function openModal(product) {
+  formMsg.style.display = 'none';
+  form.reset();
+  currentTiers = product && product.pricingTiers ? product.pricingTiers.slice() : [];
+  document.getElementById('modal-title').textContent = product ? t('edit_product_title') : t('add_product_title');
+  document.getElementById('product-id').value = product ? product.id : '';
+  document.getElementById('tier-block').style.display = '';
+  renderTierRows();
+
+  if (product) {
+    document.getElementById('sku').value = product.sku;
+    document.getElementById('name').value = product.name;
+    document.getElementById('category').value = product.category || '';
+    document.getElementById('description').value = product.description || '';
+    document.getElementById('base_price').value = product.base_price;
+    document.getElementById('moq').value = product.moq;
+    document.getElementById('stock_quantity').value = product.stock_quantity;
+    document.getElementById('image_url').value = product.image_url || '';
+    renderTierRows();
+
+    // Fetch full detail (list view doesn't include pricingTiers) before rendering.
+    apiFetch(`/products/${product.id}`)
+      .then((full) => {
+        currentTiers = full.pricingTiers || [];
+        renderTierRows();
+      })
+      .catch(() => {});
+  }
+  modal.classList.add('open');
+}
+
+function closeModal() {
+  modal.classList.remove('open');
+  currentTiers = [];
+}
+
+document.getElementById('open-add-btn').addEventListener('click', () => openModal(null));
+document.getElementById('cancel-btn').addEventListener('click', closeModal);
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  formMsg.style.display = 'none';
+  const id = document.getElementById('product-id').value;
+  const payload = {
+    sku: document.getElementById('sku').value,
+    name: document.getElementById('name').value,
+    category: document.getElementById('category').value,
+    description: document.getElementById('description').value,
+    base_price: Number(document.getElementById('base_price').value),
+    moq: Number(document.getElementById('moq').value) || 1,
+    stock_quantity: Number(document.getElementById('stock_quantity').value) || 0,
+    image_url: document.getElementById('image_url').value,
+  };
+
+  try {
+    if (id) {
+      await apiFetch(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+    } else {
+      const created = await apiFetch('/products', { method: 'POST', body: JSON.stringify(payload) });
+      // Flush any tiers added before the product existed.
+      for (const tier of currentTiers.filter((t) => t._pending)) {
+        await apiFetch(`/products/${created.id}/pricing-tiers`, {
+          method: 'POST',
+          body: JSON.stringify({ min_quantity: tier.min_quantity, unit_price: tier.unit_price }),
+        });
+      }
+    }
+    closeModal();
+    loadProducts();
+  } catch (err) {
+    formMsg.textContent = err.message;
+    formMsg.style.display = 'block';
+  }
+});
+
+loadProducts();
+</script>
+</body>
+</html>

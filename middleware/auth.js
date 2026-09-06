@@ -27,4 +27,14 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-module.exports = { requireAuth, requireAdmin };
+// Restricts a route to sellers managing their own storefront, or admins
+// managing anything. Use after requireAuth. Route handlers that allow both
+// still need to scope sellers to their own seller_id — this only checks role.
+function requireAdminOrSeller(req, res, next) {
+  if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'seller')) {
+    return res.status(403).json({ error: 'Seller or admin access required' });
+  }
+  next();
+}
+
+module.exports = { requireAuth, requireAdmin, requireAdminOrSeller };

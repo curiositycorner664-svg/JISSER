@@ -14,7 +14,7 @@ CREATE TABLE users (
   contact_name VARCHAR(150) NOT NULL,
   email VARCHAR(150) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
-  role VARCHAR(20) NOT NULL DEFAULT 'buyer', -- 'buyer' or 'admin'
+  role VARCHAR(20) NOT NULL DEFAULT 'buyer', -- 'buyer', 'seller', or 'admin'
   payment_terms VARCHAR(20) NOT NULL DEFAULT 'net_30', -- prepaid, net_15, net_30, net_60
   credit_limit NUMERIC(12,2) NOT NULL DEFAULT 0,
   credit_used NUMERIC(12,2) NOT NULL DEFAULT 0,
@@ -25,12 +25,13 @@ CREATE TABLE users (
 -- Marketplace sellers (third-party suppliers whose wares are listed on the site)
 CREATE TABLE sellers (
   id SERIAL PRIMARY KEY,
+  owner_user_id INTEGER UNIQUE REFERENCES users(id), -- the 'seller'-role account that manages this storefront (NULL for demo/legacy sellers with no login)
   name VARCHAR(150) NOT NULL,
   location VARCHAR(100),
   rating NUMERIC(2,1) NOT NULL DEFAULT 4.5,
   review_count INTEGER NOT NULL DEFAULT 0,
   since_year INTEGER,
-  verified BOOLEAN NOT NULL DEFAULT TRUE
+  verified BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- Products (wares)
