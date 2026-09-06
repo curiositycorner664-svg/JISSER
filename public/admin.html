@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Admin — Accounts — JISSER</title>
+<link rel="stylesheet" href="/css/style.css" />
+<style>
+  .admin-row-form { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+  .admin-row-form select, .admin-row-form input { width: auto; margin: 0; padding: 0.4rem 0.5rem; font-size: 0.82rem; }
+  .admin-row-form input[type="number"] { width: 100px; }
+  .admin-actions { display: flex; gap: 0.4rem; }
+  .admin-actions button { padding: 0.4rem 0.7rem; font-size: 0.8rem; }
+  td.company-cell { font-weight: 600; }
+  td.muted-cell { color: var(--steel); font-size: 0.82rem; }
+</style>
+</head>
+<body>
+<div id="site-header-root"></div>
+
+<main>
+  <h2 style="margin-bottom:0.3rem;">Accounts</h2>
+  <p style="font-size:0.85rem; color:var(--steel); margin-bottom:1.25rem;">Approve pending B2B registrations, set their credit terms, or suspend an existing account.</p>
+  <div id="admin-container">Loading...</div>
+</main>
+
+<footer class="site-footer">JISSER — Your Trusted Online Store.</footer>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/api.js"></script>
+<script>
+renderNav();
+translatePage();
+
+const container = document.getElementById('admin-container');
+const user = getUser();
+
+function statusBadge(status) {
+  return `<span class="badge ${status}">${status}</span>`;
+}
+
+function rowHtml(u) {
+  const isPending = u.status === 'pending';
+  const isSuspended = u.status === 'suspended';
+  return `
+    <tr data-id="${u.id}">
+      <td class="company-cell">${u.company_name}</td>
+      <td>
+        ${u.contact_name}<br/>
+        <span class="muted-cell">${u.email}</span>
+      </td>
+      <td>${statusBadge(u.status)}</td>
+      <td>${u.payment_terms}</td>
+      <td>$${Number(u.credit_used).toFixed(2)} / $${Number(u.credit_limit).toFixed(2)}</td>
+      <td class="muted-cell">${new Date(u.created_at).toLocaleDateString()}</td>
+      <td>
+        <div class="admin-row-form">
+          <select class="terms-select">
+            <option value="prepaid" ${u.payment_terms === 'prepaid' ? 'selected' : ''}>Prepaid</option>
+            <option value="net_15" ${u.payment_terms === 'net_15' ? 'selected' : ''}>Net 15</option>
+            <option value="net_30" ${u.payment_terms === 'net_30' ? 'selected' : ''}>Net 30</option>
+            <option value="net_60" ${u.payment_terms === 'net_60' ? 'selected' : ''}>Net 60</option>
+          </select>
+          <input type="number" class="credit-input" min="0" step="100" value="${u.credit_limit}" placeholder="Credit limit" />
+          <div class="admin-actions">
+            <button type="button" class="approve-btn" ${u.role === 'admin' ? 'disabled' : ''}>${isPending ? 'Approve' : 'Update'}</button>
+            <button type="button" class="danger suspend-btn" ${isSuspended || u.role === 'admin' ? 'disabled' : ''}>Suspend</button>
+          </div>
+        </div>
+        <p class="row-msg error-msg" style="display:none;"></p>
+      </td>
+    </tr>`;
+}
+
+async function loadAccounts() {
+  if (!user) {
+    container.innerHTML = `<p class="error-msg">Please log in as an admin to view this page.</p>`;
+    return;
+  }
+  if (user.role !== 'admin') {
+    container.innerHTML = `<p class="error-msg">You need an admin account to view this page.</p>`;
+    return;
+  }
+  try {
+    const accounts = await apiFetch('/users');
+    if (accounts.length === 0) {
+      container.innerHTML = `<p>No accounts yet.</p>`;
+      return;
+    }
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Contact</th>
+            <th>Status</th>
+            <th>Terms</th>
+            <th>Credit used / limit</th>
+            <th>Registered</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${accounts.map(rowHtml).join('')}
+        </tbody>
+      </table>
+    `;
+    attachHandlers();
+  } catch (err) {
+    container.innerHTML = `<p class="error-msg">${err.message}</p>`;
+  }
+}
+
+function attachHandlers() {
+  container.querySelectorAll('tr[data-id]').forEach((row) => {
+    const id = row.getAttribute('data-id');
+    const msg = row.querySelector('.row-msg');
+
+    row.querySelector('.approve-btn').addEventListener('click', async () => {
+      msg.style.display = 'none';
+      const payment_terms = row.querySelector('.terms-select').value;
+      const credit_limit = Number(row.querySelector('.credit-input').value || 0);
+      try {
+        await apiFetch(`/users/${id}/approve`, {
+          method: 'PATCH',
+          body: JSON.stringify({ payment_terms, credit_limit }),
+        });
+        loadAccounts();
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.style.display = 'block';
+      }
+    });
+
+    row.querySelector('.suspend-btn').addEventListener('click', async () => {
+      msg.style.display = 'none';
+      if (!confirm('Suspend this account? They will not be able to place orders.')) return;
+      try {
+        await apiFetch(`/users/${id}/suspend`, { method: 'PATCH' });
+        loadAccounts();
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.style.display = 'block';
+      }
+    });
+  });
+}
+
+loadAccounts();
+</script>
+</body>
+</html>

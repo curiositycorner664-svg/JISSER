@@ -389,6 +389,8 @@ th {
 .badge.shipped { color: var(--ship); }
 .badge.paid { color: var(--ok); }
 .badge.cancelled { color: var(--danger); }
+.badge.approved { color: var(--ok); }
+.badge.suspended { color: var(--danger); }
 
 /* ---------------- Bulk pricing ladder ---------------- */
 
