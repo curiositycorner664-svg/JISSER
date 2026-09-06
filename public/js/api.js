@@ -70,7 +70,7 @@ function renderNav() {
   root.innerHTML = `
     <header class="site-header">
       <div class="header-top">
-        <a href="/index.html" class="wordmark"><img src="/img/logo.png" alt="BINA" class="wordmark-img" /><span class="sub">${t('tagline')}</span></a>
+        <a href="/index.html" class="wordmark"><img src="/img/logo.png" alt="JISSER" class="wordmark-img" /><span class="sub">${t('tagline')}</span></a>
         <form class="search-bar" onsubmit="event.preventDefault(); window.location.href='/index.html?search='+encodeURIComponent(this.q.value);">
           <input name="q" type="text" placeholder="${t('nav_search_placeholder')}" />
           <button type="submit">${t('nav_search_btn')}</button>

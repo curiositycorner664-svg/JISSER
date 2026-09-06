@@ -1,4 +1,4 @@
-// BINA i18n — English / French / Arabic
+// JISSER i18n — English / French / Arabic
 // Static UI strings live in the dictionaries below. Product/seller data
 // coming from the database (names, descriptions, categories) is not
 // translated — that would require a translation service on the backend.
@@ -14,7 +14,7 @@ const I18N = {
     nav_search_placeholder: 'Search the catalog...',
     nav_search_btn: 'Search',
     tagline: 'YOUR TRUSTED ONLINE STORE',
-    footer: 'BINA — Your Trusted Online Store.',
+    footer: 'JISSER — Your Trusted Online Store.',
 
     home_hero_badge: 'Bulk Deal',
     home_hero_title: 'Cotton tees, 1000+ units, $3.40 each.',
@@ -135,7 +135,7 @@ const I18N = {
     nav_search_placeholder: 'Rechercher dans le catalogue...',
     nav_search_btn: 'Rechercher',
     tagline: 'VOTRE BOUTIQUE EN LIGNE DE CONFIANCE',
-    footer: 'BINA — Votre boutique en ligne de confiance.',
+    footer: 'JISSER — Votre boutique en ligne de confiance.',
 
     home_hero_badge: 'Offre en gros',
     home_hero_title: 'T-shirts en coton, 1000+ unités, 3,40 $ chacun.',
@@ -256,7 +256,7 @@ const I18N = {
     nav_search_placeholder: 'البحث في الكتالوج...',
     nav_search_btn: 'بحث',
     tagline: 'متجرك الإلكتروني الموثوق',
-    footer: 'بينا — متجرك الإلكتروني الموثوق.',
+    footer: 'جسر — متجرك الإلكتروني الموثوق.',
 
     home_hero_badge: 'عرض بالجملة',
     home_hero_title: 'تيشيرتات قطنية، 1000+ وحدة، 3.40 دولار للوحدة.',

@@ -8,12 +8,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 
 :root {
-  --ink: #041E38;        /* header / primary dark — BINA navy */
+  --ink: #041E38;        /* header / primary dark — JISSER navy */
   --ink-2: #0B2C4C;       /* header gradient partner */
   --paper: #F5F6F8;       /* page background — neutral light */
   --kraft: #E9EDF1;        /* tag / card surface — cool neutral */
   --kraft-dark: #C9D2DA;    /* tag border / shadow */
-  --stamp: #FD6B00;         /* BINA orange accent */
+  --stamp: #FD6B00;         /* JISSER orange accent */
   --stamp-dark: #D95900;
   --stencil: #0B1620;        /* headline black */
   --steel: #5B6472;           /* muted text */
